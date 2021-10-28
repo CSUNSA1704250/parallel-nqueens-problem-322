@@ -1,3 +1,3 @@
-##Integrantes:
-###Erick Gutierrez Enriquez
-###Luis Vilcapaza Flores
+## Integrantes:
+### Erick Gutierrez Enriquez
+### Luis Vilcapaza Flores
