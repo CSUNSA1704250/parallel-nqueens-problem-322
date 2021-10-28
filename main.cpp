@@ -33,7 +33,7 @@ void printTablero(vector<unsigned short>& tablero, int n, string& txt)
   string solution="";
   for(int i=0;i<n;i++)
     solution+=to_string(tablero[i]+1)+" ";
-  txt+=solution+"\n";
+  txt+= to_string(count) + " " + solution+"\n";
 }
 
 
