@@ -7,14 +7,9 @@ using namespace std;
 
 
 int count=0;
+bool find_queens=false;
 
-void copyVector(vector<unsigned short>& ori,vector<unsigned short>& cop,unsigned short column)
-{
-  for(int i=0;i<column;i++)
-    cop[i]=ori[i];
-}
-
-int queenAccepted(vector<unsigned short>& tablero, int c, int r)
+int queenAccepted(int *tablero, int c, int r)
 {
   for(int i=0;i<c;i++)
   {
@@ -27,17 +22,17 @@ int queenAccepted(vector<unsigned short>& tablero, int c, int r)
 }
 
 
-void printTablero(vector<unsigned short>& tablero, int n, string& txt)
+void printTablero(int *tablero, int n, string& txt)
 {
-  ++count;
+
   string solution="";
   for(int i=0;i<n;i++)
     solution+=to_string(tablero[i]+1)+" ";
-  txt+= to_string(count) + " " + solution+"\n";
+  txt+= solution+"\n";
 }
 
 
-void printDot(vector<unsigned short>& tablero, int n, string& output){
+void printDot(int* tablero, int n, string& output){
   output+="digraph H {\n  Tablero [\n    shape=plaintext\n    color=black\n    label=<\n";
   output+="      <table border=\'0\' cellborder=\'1\' cellspacing=\"0\">";
   for(int i=0;i<n;i++){
@@ -65,76 +60,105 @@ void printDot(vector<unsigned short>& tablero, int n, string& output){
 }
 
 
-void allQueens(vector<unsigned short> tablero,int c, int n, string& txt)
+void allQueens(int* tablero,int c, int n, string& txt, int &n_sol)
 {
   if(c==n)
   {
-  #pragma omp critical
+    n_sol++;
     printTablero(tablero,n,txt);
     return;
   }
-  #pragma omp parallel for
   for(int i = 0; i < n; i++)
   {
     if(queenAccepted(tablero, c, i))
     {     
-      vector<unsigned short> copy(n);
-      copyVector(tablero,copy,c);
-      copy[c] = i;
-      allQueens(copy, c + 1,n,txt);
+      tablero[c]=i;
+      allQueens(tablero, c + 1,n,txt, n_sol);
     }
   }
 }
 
-int findQueens(vector<unsigned short> tablero,int c, int n,string& txt)
+int findQueens(int *tablero,int c, int n,string& txt)
 {
+  if(find_queens)
+    return 1;
   if(c == n)
   {
     printDot(tablero,n,txt);
-    return 1;
+    find_queens = true;
   }
-#pragma opm parallel for
   for(int i = 0; i < n; i++)
   {
     if (queenAccepted(tablero, c, i))
     {
-      vector<unsigned short> copy(n);
-      copyVector(tablero,copy,c);
-      copy[c] = i;
-      if(findQueens(copy, c + 1,n,txt))
-        return 1;
-      
+      tablero[c]=i;
+      if(findQueens(tablero, c + 1,n,txt))
+      return 1;
     }
   }
   return 0;
 }
 
+void allQueens_p(int n)
+{
+  string txt="";
+  
+  #pragma omp parallel for 
+  for(int i = 0; i < n; i++)
+  {
+    string solutions="";
+    int *tablero = new int[n];
+    int n_sol=0;
+    tablero[0] = i;
+    allQueens(tablero,1,n,solutions,n_sol);
+    //cout << "tablero " << i << endl;
+    //for(int i=0; i<n; i++)
+     // cout << tablero[i] << ' ';
+    //cout << endl;
+    delete [] tablero;
+    #pragma omp critical
+    txt+=solutions;
+    count+=n_sol;
+  }
+
+  ofstream file;
+  file.open("solutions.txt");
+  file<<"#Solutions for " + to_string(n) + " queens\n";
+  file<<to_string(count) + "\n" + txt;
+  file.close();
+
+}
+
+void findQueens_p(int n)
+{
+  string dot_str="";
+  
+  #pragma opm parallel for
+  for(int i = 0; i < n; i++)
+  {
+    int *tablero = new int[n];
+    tablero[0] = i;
+    findQueens(tablero,1,n,dot_str);
+    delete [] tablero;
+  }
+  
+  ofstream dot;
+  dot.open("solution.dot");
+  dot<<dot_str + "\n";
+  dot.close();
+
+}
 
 int main(int argc, char** argv){
   int n=stoi(argv[4]);
-  vector<unsigned short> tablero(5);
 
   if(!strcmp(argv[2],"all"))
   {
-    string txt="";
-    allQueens(tablero,0,n,txt);
-    ofstream file;
-    file.open("solutions.txt");
-    file<<"#Solutions for " + to_string(n) + " queens\n";
-    file<<to_string(count) + "\n" + txt;
-    file.close();
+    allQueens_p(n);
   }
   else{
-    string dot_str="";
-    findQueens(tablero,0,n,dot_str);
-    ofstream dot;
-    dot.open("solution.dot");
-    dot<<dot_str + "\n";
-    dot.close();
+    findQueens_p(n);
   }
 
-
   return 0;
-
-  
 }

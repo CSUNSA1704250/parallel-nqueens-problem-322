@@ -1,7 +1,7 @@
 ## Compilacion y Ejecucion
 ### Compilacion 
 ```
-g++ main.cpp -o main -fopenmp -O3 -march=native
+g++ main.cpp -o main -fopenmp -O2
 ```
 ### Ejemplos de ejecucion
 ```
