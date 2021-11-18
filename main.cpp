@@ -12,23 +12,18 @@ bool find_queens=false;
 int queenAccepted(int *tablero, int c, int r)
 {
   for(int i=0;i<c;i++)
-  {
-    if(tablero[i]==r)
+    if(tablero[i]==r || abs((c+1)-(i+1)) == abs((r+1)-(tablero[i]+1)))
       return 0;
-    if(abs((c+1)-(i+1)) == abs((r+1)-(tablero[i]+1)))
-      return 0;
-  }
+  
   return 1;
 }
 
 
 void printTablero(int *tablero, int n, string& txt)
 {
-
-  string solution="";
   for(int i=0;i<n;i++)
-    solution+=to_string(tablero[i]+1)+" ";
-  txt+= solution+"\n";
+    txt+=to_string(tablero[i]+1)+" ";
+  txt+= +"\n";
 }
 
 
@@ -64,7 +59,7 @@ void allQueens(int* tablero,int c, int n, string& txt, int &n_sol)
 {
   if(c==n)
   {
-    n_sol++;
+    ++n_sol;
     printTablero(tablero,n,txt);
     return;
   }
@@ -112,13 +107,15 @@ void allQueens_p(int n)
     tablero[0] = i;
     allQueens(tablero,1,n,solutions,n_sol);
     //cout << "tablero " << i << endl;
-    //for(int i=0; i<n; i++)
+    //for(int i=0; i<n; i++)            
      // cout << tablero[i] << ' ';
     //cout << endl;
     delete [] tablero;
     #pragma omp critical
-    txt+=solutions;
-    count+=n_sol;
+    {
+      txt+=solutions;
+      count+=n_sol;
+    }
   }
 
   ofstream file;
